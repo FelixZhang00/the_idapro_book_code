@@ -1,4 +1,4 @@
-//the sample for 22.1 gcc -m32 -o strcpy_sample
+//the sample for 22.1 gcc -m32 -O0 strcpy_sample.c -o strcpy_sample 
 
 #include<stdio.h>
 #include<string.h>
