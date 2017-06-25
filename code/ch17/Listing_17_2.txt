@@ -1,0 +1,82 @@
+/*
+    The IDA Pro Book - choose demo plugin
+    Copyright (C) 2008 Chris Eagle <cseagle@gmail.com>
+
+    This program is free software; you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by the Free
+    Software Foundation; either version 2 of the License, or (at your option)
+    any later version.
+
+    This program is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+    more details.
+
+    You should have received a copy of the GNU General Public License along with
+    this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+    Place, Suite 330, Boston, MA 02111-1307 USA
+
+*/
+
+/*
+ * choose demo plugin
+ */
+
+#include <ida.hpp>
+#include <pro.h>
+#include <idp.hpp>
+#include <loader.hpp>
+#include <kernwin.hpp>
+
+int idaapi init(void) {
+   return PLUGIN_KEEP;
+}
+
+void idaapi term(void) {
+   //nothing to do for this simple plugin
+}
+
+int data[] = {0xdeafbeef, 0xcafebabe, 0xfeedface, 0};
+
+uint32 idaapi idabook_sizer(void *obj) {
+   int *p = (int*)obj;
+   int count = 0;
+   while (*p++) count++;
+   return count;
+}
+
+char *idaapi idabook_getline(void *obj, uint32 n, char *buf) {
+   int *p = (int*)obj;
+   if (n == 0) {
+      qstrncpy(buf, "Value", strlen("Value") + 1);
+   }
+   else {
+      qsnprintf(buf, 32, "0x%08.8x", p[n - 1]);
+   }
+   return buf;
+}
+
+void idaapi run(int arg) {
+   int choice = choose(data, 32, idabook_sizer, idabook_getline, "Idabook Choose");
+   msg("The choice was %d\n", choice);
+}
+
+//--------------------------------------------------------------------------
+char *comment = NULL;
+char *help = NULL;
+char wanted_name[] = "choose demo";
+char wanted_hotkey[] = "Alt-F7";
+
+plugin_t PLUGIN = {
+  IDP_INTERFACE_VERSION,
+  0,                    // plugin flags
+  init,                 // initialize
+  term,                 // terminate. this pointer may be NULL.
+  run,                  // invoke plugin
+  comment,              // long comment about the plugin
+                        // it could appear in the status line
+                        // or as a hint
+  help,                 // multiline help about the plugin
+  wanted_name,          // the preferred short name of the plugin
+  wanted_hotkey         // the preferred hotkey to run the plugin
+};

@@ -1,0 +1,103 @@
+/*
+    The IDA Pro Book - choose2 demo plugin
+    Copyright (C) 2008 Chris Eagle <cseagle@gmail.com>
+
+    This program is free software; you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by the Free
+    Software Foundation; either version 2 of the License, or (at your option)
+    any later version.
+
+    This program is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+    more details.
+
+    You should have received a copy of the GNU General Public License along with
+    this program; if not, write to the Free Software Foundation, Inc., 59 Temple
+    Place, Suite 330, Boston, MA 02111-1307 USA
+
+*/
+
+/*
+ * choose2 demo plugin
+ */
+
+#include <ida.hpp>
+#include <pro.h>
+#include <idp.hpp>
+#include <loader.hpp>
+#include <kernwin.hpp>
+
+int idaapi init(void) {
+   return PLUGIN_KEEP;
+}
+
+void idaapi term(void) {
+   //nothing to do for this simple plugin
+}
+
+//The sample data to be displayed
+int data[] = {0xdeafbeef, 0xcafebabe, 0xfeedface, 0};
+//The width of each column
+int widths[] = {16, 16, 16};
+//The headers for each column
+char *headers[] = {"Decimal", "Hexadecimal", "Octal"};
+//The format strings for each column
+char *formats[] = {"%d", "0x%x", "0%o"};
+
+//This function expects obj to point to a zero terminated array
+//of non-zero integers
+uint32 idaapi idabook_sizer(void *obj) {
+   int *p = (int*)obj;
+   int count = 0;
+   while (*p++) count++;
+   return count;
+}
+
+/*
+ * obj In this function obj is expected to point to an array of integers
+ * n indicates which line (1..n) of the display is being formated.
+ *   if n is zero, the header line is being requested.
+ * cells is a pointer to an array of character pointers. This array
+ *       contains one pointer for each column in the chooser.  The output
+ *       for each column should not exceed the corresponding width specified
+ *       in the widths array.
+ */
+ void idaapi idabook_getline2(void *obj, uint32 n, char* const* cells) {
+   int *p = (int*)obj;
+   if (n == 0) {
+      for (int i = 0; i < 3; i++) {
+         qstrncpy(cells[i], headers[i], widths[i]);
+      }
+   }
+   else {
+      for (int i = 0; i < 3; i++) {
+         qsnprintf(cells[i], widths[i], formats[i], p[n - 1]);
+      }
+   }
+}
+
+void idaapi run(int arg) {
+   int choice = choose2(data, 3, widths, idabook_sizer, idabook_getline2, "Idabook Choose2");
+   msg("The choice was %d\n", choice);
+}
+
+//--------------------------------------------------------------------------
+char *comment = NULL;
+char *help = NULL;
+char wanted_name[] = "choose2 demo";
+char wanted_hotkey[] = "Alt-F7";
+
+plugin_t PLUGIN = {
+  IDP_INTERFACE_VERSION,
+  0,                    // plugin flags
+  init,                 // initialize
+  term,                 // terminate. this pointer may be NULL.
+  run,                  // invoke plugin
+  comment,              // long comment about the plugin
+                        // it could appear in the status line
+                        // or as a hint
+  help,                 // multiline help about the plugin
+  wanted_name,          // the preferred short name of the plugin
+  wanted_hotkey         // the preferred hotkey to run the plugin
+};
