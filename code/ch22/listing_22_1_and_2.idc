@@ -32,7 +32,7 @@ static getFuncAddr(fname) {
          func = DfirstB(func);
          if (func != BADADDR) {
             seg = SegName(func);
-            if (seg != ".got") return BADADDR;
+            if (seg != ".got.plt") return BADADDR;
             //Now, first (and only) data xref should be from plt
             func = DfirstB(func);
             if (func != BADADDR) {
@@ -48,6 +48,7 @@ static getFuncAddr(fname) {
          func = BADADDR;
       }
    }
+   Message("func=%s",func);
    return func;
 }
 
@@ -74,6 +75,7 @@ static flagCalls(fname) {
 }
 
 static main() {
+   Message("start list...\n");
    flagCalls("strcpy");
    flagCalls("strcat");
    flagCalls("sprintf");
